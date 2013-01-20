@@ -5,7 +5,7 @@ public class TestManager {
 	public TestManager() {
 	}
 	
-	public TestContainer<?> initTest(String dirname) {
+	public Exercise<?> initTest(String dirname) {
 		//	In a test dir, we must find:
 		//	TEST, a file containing:
 		//		Class name of TestSuite as the first line.
