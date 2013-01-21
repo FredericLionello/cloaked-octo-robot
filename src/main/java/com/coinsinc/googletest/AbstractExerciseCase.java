@@ -1,9 +1,9 @@
 package com.coinsinc.googletest;
 
-public abstract class AbstractTestCase {
+public abstract class AbstractExerciseCase {
 	private final int id;
 
-	public AbstractTestCase(int id) {
+	public AbstractExerciseCase(int id) {
 		super();
 		this.id = id;
 	}
@@ -12,14 +12,14 @@ public abstract class AbstractTestCase {
 		return id;
 	}
 
-	public <T extends AbstractTestCase> void checkSolver(TestSolver<T> solver) {
+	public <T extends AbstractExerciseCase> void checkSolver(ExerciseSolver<T> solver) {
 		if (solver.getTestCaseClass().equals(getClass()) == false) {
 			throw new IllegalStateException("Bad solver test class. Should be "
 					+ getClass() + " and is " + solver.getTestCaseClass());
 		}
 	}
 
-	<T extends AbstractTestCase> TestResult inject(TestSolver<T> solver) {
+	<T extends AbstractExerciseCase> CaseResult inject(ExerciseSolver<T> solver) {
 
 		// The validity of this cast should be checked outside of the per test
 		// case injection.

@@ -1,11 +1,11 @@
 package com.coinsinc.googletest;
 
 
-public class TestManager {	
-	public TestManager() {
+public class ExerciseManager {	
+	public ExerciseManager() {
 	}
 	
-	public Exercise<?> initTest(String dirname) {
+	public Exercise<?> initTest(String testName) {
 		//	In a test dir, we must find:
 		//	TEST, a file containing:
 		//		Class name of TestSuite as the first line.

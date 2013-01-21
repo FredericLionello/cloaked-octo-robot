@@ -1,4 +1,4 @@
-package com.coinsinc.googletest;
+package com.coinsinc.googletest.internal;
 
 /**
  * Hello world!

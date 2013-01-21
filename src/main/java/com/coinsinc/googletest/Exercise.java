@@ -1,60 +1,97 @@
 package com.coinsinc.googletest;
 
-import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
-public class Exercise<T extends AbstractTestCase> {
-	private final TestSuite<T> suite;
-	private final Map<String, TestSolver<T>> solverMap = new HashMap<String, TestSolver<T>>();
+public class Exercise<T extends AbstractExerciseCase> {
+	private final String name;
+	private final Map<String, ExerciseSuite<T>> suiteMap = new LinkedHashMap<String, ExerciseSuite<T>>();
+	private final Map<String, ExerciseSolver<T>> solverMap = new LinkedHashMap<String, ExerciseSolver<T>>();
 	private static final Logger Log = Logger.getLogger("TestContainer");
-	
-	Exercise(TestSuite<T> suite) {
+
+	Exercise(String name) {
 		super();
-		this.suite = suite;
+		this.name = name;
 	}
-	
-	void registerSolver(TestSolver<T> solver) {
+
+	void registerSolver(ExerciseSolver<T> solver) {
 		if (solverMap.containsKey(solver.getName())) {
-			throw new RuntimeException("Already a solver named: " + solver.getName());
+			throw new RuntimeException("Already a solver named: "
+					+ solver.getName());
 		}
-		
+
 		solverMap.put(solver.getName(), solver);
 	}
-	
-	void runSolverBenchmark(String name) {
-		//	Time and run.
+
+	void runSolverBenchmark(String solverName, String suiteName) {
+		// Time and run.
 		//
-		assert false;
+		ExerciseSolver<T> solver = solverMap.get(solverName);
+		if (solver == null) {
+			throw new IllegalArgumentException("No solver named <" + solverName
+					+ ">.");
+		}
+		
+		ExerciseSuite<T> suite = suiteMap.get(suiteName);
+		if (suite == null) {
+			throw new IllegalArgumentException("No suite named <" + suiteName
+					+ ">.");
+		}
+		
+
+		Log.info("Starting benchmark, test <" + name + ">, solver <" + solverName
+				+ ">, suite <" + suiteName + ">.");
+
+		// This is micro benchmarking with the associated errors. We should
+		// probably have a warmup phase to allow JIT magic to happen, but the
+		// benchmark need to happen with a single test loaded in memory, and we
+		// could end up with the JVM compiling out the results.
+		// So, all solvers run without warmup. May the best win.
+		//
+		
+		long t1 = System.nanoTime();
+		for (AbstractExerciseCase aec: suite.getExerciseCases()) {
+			aec.inject(solver);
+		}
+		long t2 = System.nanoTime();
+		
+		Log.info("Execution time: " + ((t2 - t1) * 1e-6) + " msecs");
 	}
-	
+
 	void checkSolvers() {
 		Log.info("Checking solvers.");
-		
-		Set<TestSolver<T>> s = new HashSet<TestSolver<T>>(solverMap.values());
-		for (T test: suite.getTestCases()) {
-			TestResult referenceRes = null;
-			Log.info("Test: " + test);
-			
-			for (TestSolver<T> solver: s) {
-				Log.info("Executing for solver: " + solver.getName() + " ...");
-				TestResult res = solver.execute(test);
-				Log.info("Result for solver: " + solver.getName() + ": " + res);
-				
-				if (referenceRes != null) {
-					if (res.equals(referenceRes) == false) {
-						Log.severe("Different results !");
-						throw new RuntimeException("Different results !");
+
+		Set<ExerciseSolver<T>> s = new HashSet<ExerciseSolver<T>>(
+				solverMap.values());
+		for (ExerciseSuite<T> suite : suiteMap.values()) {
+			Log.info("Running suite: " + suite.getName());
+			for (T test : suite.getExerciseCases()) {
+				CaseResult referenceRes = null;
+				Log.info("Test: " + test);
+
+				for (ExerciseSolver<T> solver : s) {
+					Log.info("Executing for solver: " + solver.getName()
+							+ " ...");
+					CaseResult res = solver.execute(test);
+					Log.info("Result for solver: " + solver.getName() + ": "
+							+ res);
+
+					if (referenceRes != null) {
+						if (res.equals(referenceRes) == false) {
+							Log.severe("Different results !");
+							throw new RuntimeException("Different results !");
+						}
+					} else {
+						referenceRes = res;
 					}
-				} else {
-					referenceRes = res;
 				}
 			}
 		}
-		
+
 		Log.info("Solver check OK.");
 	}
-	
+
 }
