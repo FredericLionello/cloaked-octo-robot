@@ -1,10 +1,10 @@
 package com.coinsinc.googletest;
 
-public abstract class AbstractExerciseSolver<T extends AbstractExerciseCase> implements ExerciseSolver<T> {
+public abstract class AbstractProblemSolver<T extends AbstractTestCase> implements ProblemSolver<T> {
 	private final String name;
 	private final Class<T> testCaseClass;
 
-	public AbstractExerciseSolver(String name, Class<T> testCaseClass) {
+	public AbstractProblemSolver(String name, Class<T> testCaseClass) {
 		super();
 		this.name = name;
 		this.testCaseClass = testCaseClass;
