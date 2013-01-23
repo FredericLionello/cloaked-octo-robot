@@ -1,22 +1,40 @@
 package com.coinsinc.googletest;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
 
-public class ProblemManager {	
+public class ProblemManager {
+
+	private final Map<String, AbstractProblemContainer<?>> containerMapByShortName = new LinkedHashMap<String, AbstractProblemContainer<?>>();
+	private final Map<Class<?>, AbstractProblemContainer<?>> containerMapByTCClass = new LinkedHashMap<Class<?>, AbstractProblemContainer<?>>();
+
 	public ProblemManager() {
 	}
-	
-	public ProblemContainer<?> initTest(String testName) {
-		//	In a test dir, we must find:
-		//	TEST, a file containing:
-		//		Class name of TestSuite as the first line.
-		//		Class names of associated TestSolvers as the next lines.
-		//	*.tc , test case files.
-		//	
-		
-		return null;
+
+	public void addContainer(AbstractProblemContainer<?> container) {
+		if (containerMapByShortName.containsKey(container.getShortName())) {
+			throw new IllegalArgumentException("Dupe pb container short name <"
+					+ container.getShortName() + ">.");
+		}
+
+		if (containerMapByTCClass.containsKey(container.getTestCaseClass())) {
+			throw new IllegalArgumentException("Dupe pb container test class <"
+					+ container.getTestCaseClass() + ">.");
+		}
+
+		containerMapByShortName.put(container.getShortName(), container);
+		containerMapByTCClass.put(container.getTestCaseClass(), container);
 	}
-	
-	public void initSolver(String clsName) {
+
+	public <T extends AbstractTestCase> void addSolver(ProblemSolver<T> solver) {
+		AbstractProblemContainer<?> container = containerMapByTCClass.get(solver
+				.getTestCaseClass());
+		
+		assert solver.getTestCaseClass().equals(container.getTestCaseClass());
+		@SuppressWarnings("unchecked")
+		AbstractProblemContainer<T> ct = (AbstractProblemContainer<T>) container;
+		
+		ct.addSolver(solver);
 	}
 
 }

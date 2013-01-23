@@ -6,18 +6,22 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
-public abstract class ProblemContainer<T extends AbstractTestCase> {
-	private final String name;
+public abstract class AbstractProblemContainer<T extends AbstractTestCase> {
+	private final String shortName;
 	private boolean initDone = false;
 	private final Class<T> testCaseClass;
 	private final Map<String, Dataset<T>> suiteMap = new LinkedHashMap<String, Dataset<T>>();
 	private final Map<String, ProblemSolver<T>> solverMap = new LinkedHashMap<String, ProblemSolver<T>>();
 	private static final Logger Log = Logger.getLogger("TestContainer");
 
-	ProblemContainer(String name, Class<T> testCaseClass) {
+	public AbstractProblemContainer(String name, Class<T> testCaseClass) {
 		super();
-		this.name = name;
+		this.shortName = name;
 		this.testCaseClass = testCaseClass;
+	}
+
+	public String getShortName() {
+		return shortName;
 	}
 
 	public Class<T> getTestCaseClass() {
@@ -34,7 +38,7 @@ public abstract class ProblemContainer<T extends AbstractTestCase> {
 		init();
 
 		if (suiteMap.isEmpty()) {
-			throw new IllegalStateException("Problem <" + name
+			throw new IllegalStateException("Problem <" + shortName
 					+ "> has no test suite after init.");
 		}
 
@@ -52,13 +56,7 @@ public abstract class ProblemContainer<T extends AbstractTestCase> {
 		}
 	}
 
-	public void registerSolvers(ProblemSolver<T>... solvers) {
-		for (ProblemSolver<T> solver : solvers) {
-			registerSolver(solver);
-		}
-	}
-
-	public void registerSolver(ProblemSolver<T> solver) {
+	public void addSolver(ProblemSolver<T> solver) {
 		if (solver.getTestCaseClass().equals(testCaseClass) == false) {
 			throw new IllegalArgumentException("Solver <" + solver.getName()
 					+ "> bad test class type. Expected <" + testCaseClass
@@ -89,7 +87,7 @@ public abstract class ProblemContainer<T extends AbstractTestCase> {
 					+ ">.");
 		}
 
-		Log.info("Starting benchmark, test <" + name + ">, solver <"
+		Log.info("Starting benchmark, test <" + shortName + ">, solver <"
 				+ solverName + ">, suite <" + suiteName + ">.");
 
 		// This is micro benchmarking with the associated errors. We should
@@ -102,7 +100,7 @@ public abstract class ProblemContainer<T extends AbstractTestCase> {
 		long t1 = System.nanoTime();
 		StringBuilder sb = new StringBuilder();
 		for (T aec : suite.getTestCases()) {
-			CaseResult<T> result = solver.execute(aec);
+			AbstractCaseResult<T> result = solver.execute(aec);
 			result.output(sb);
 		}
 		long t2 = System.nanoTime();
@@ -120,13 +118,13 @@ public abstract class ProblemContainer<T extends AbstractTestCase> {
 		for (Dataset<T> suite : suiteMap.values()) {
 			Log.info("Running suite: " + suite.getName());
 			for (T test : suite.getTestCases()) {
-				CaseResult<T> referenceRes = null;
+				AbstractCaseResult<T> referenceRes = null;
 				Log.info("Test: " + test);
 
 				for (ProblemSolver<T> solver : s) {
 					Log.info("Executing for solver: " + solver.getName()
 							+ " ...");
-					CaseResult<T> res = solver.execute(test);
+					AbstractCaseResult<T> res = solver.execute(test);
 					Log.info("Result for solver: " + solver.getName() + ": "
 							+ res);
 
