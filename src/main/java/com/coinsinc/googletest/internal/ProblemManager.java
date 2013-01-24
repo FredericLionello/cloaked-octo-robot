@@ -1,7 +1,11 @@
-package com.coinsinc.googletest;
+package com.coinsinc.googletest.internal;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+
+import com.coinsinc.googletest.AbstractProblemContainer;
+import com.coinsinc.googletest.AbstractTestCase;
+import com.coinsinc.googletest.ProblemSolver;
 
 public class ProblemManager {
 

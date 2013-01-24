@@ -1,7 +1,13 @@
 package com.coinsinc.googletest;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.Reader;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -10,6 +16,7 @@ public abstract class AbstractProblemContainer<T extends AbstractTestCase> {
 	private final String shortName;
 	private boolean initDone = false;
 	private final Class<T> testCaseClass;
+	private final List<File> datasetFiles = new ArrayList<File>();
 	private final Map<String, Dataset<T>> suiteMap = new LinkedHashMap<String, Dataset<T>>();
 	private final Map<String, ProblemSolver<T>> solverMap = new LinkedHashMap<String, ProblemSolver<T>>();
 	private static final Logger Log = Logger.getLogger("TestContainer");
@@ -28,14 +35,25 @@ public abstract class AbstractProblemContainer<T extends AbstractTestCase> {
 		return testCaseClass;
 	}
 
-	protected abstract void init();
-
-	private void wrapInit() {
+	private void init() {
 		if (initDone == true) {
 			return;
 		}
 
-		init();
+		for (File df : datasetFiles) {
+			List<T> l = new ArrayList<T>();
+			Reader r = null;
+
+			try {
+				r = new FileReader(df);
+			} catch (FileNotFoundException e) {
+				throw new RuntimeException("Cannot open " + df + ": " + e, e);
+			}
+
+			parseDataset(r, l);
+
+			addDataset(new Dataset<T>(df.getName(), l));
+		}
 
 		if (suiteMap.isEmpty()) {
 			throw new IllegalStateException("Problem <" + shortName
@@ -45,15 +63,27 @@ public abstract class AbstractProblemContainer<T extends AbstractTestCase> {
 		initDone = true;
 	}
 
-	public final void addDataset(Dataset<T>... suites) {
-		for (Dataset<T> s : suites) {
-			if (suiteMap.containsKey(s.getName()) == true) {
-				throw new IllegalArgumentException("Twice the suite named <"
-						+ s.getName() + ">.");
-			}
+	public List<File> getDatasetFiles() {
+		return datasetFiles;
+	}
 
-			suiteMap.put(s.getName(), s);
+	public void setDatasetFiles(List<File> datasetFiles) {
+		if (initDone == true || this.datasetFiles.isEmpty() == false) {
+			throw new IllegalStateException("Not allowed twice or after init.");
 		}
+
+		this.datasetFiles.addAll(datasetFiles);
+	}
+
+	protected abstract void parseDataset(Reader reader, List<T> list);
+
+	public void addDataset(Dataset<T> dataset) {
+		if (suiteMap.containsKey(dataset.getName()) == true) {
+			throw new IllegalArgumentException("Twice the suite named <"
+					+ dataset.getName() + ">.");
+		}
+
+		suiteMap.put(dataset.getName(), dataset);
 	}
 
 	public void addSolver(ProblemSolver<T> solver) {
@@ -71,7 +101,7 @@ public abstract class AbstractProblemContainer<T extends AbstractTestCase> {
 	}
 
 	void runSolverBenchmark(String solverName, String suiteName) {
-		wrapInit();
+		init();
 
 		// Time and run.
 		//
@@ -109,7 +139,7 @@ public abstract class AbstractProblemContainer<T extends AbstractTestCase> {
 	}
 
 	void checkSolvers() {
-		wrapInit();
+		init();
 
 		Log.info("Checking solvers.");
 
