@@ -4,22 +4,24 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.Reader;
+import java.io.StringReader;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.logging.Logger;
 
 public abstract class AbstractProblemContainer<T extends AbstractTestCase> {
+	private static final Logger Log = Logger.getLogger("TestContainer");
+	
 	private final String shortName;
 	private boolean initDone = false;
 	private final Class<T> testCaseClass;
 	private final List<File> datasetFiles = new ArrayList<File>();
 	private final Map<String, Dataset<T>> suiteMap = new LinkedHashMap<String, Dataset<T>>();
-	private final Map<String, ProblemSolver<T>> solverMap = new LinkedHashMap<String, ProblemSolver<T>>();
-	private static final Logger Log = Logger.getLogger("TestContainer");
+	private final Map<String, AbstractProblemSolver<T>> solverMap = new LinkedHashMap<String, AbstractProblemSolver<T>>();
+	private Dataset<T> testInput;
+	private String testOutputString;
 
 	public AbstractProblemContainer(String name, Class<T> testCaseClass) {
 		super();
@@ -33,6 +35,18 @@ public abstract class AbstractProblemContainer<T extends AbstractTestCase> {
 
 	public Class<T> getTestCaseClass() {
 		return testCaseClass;
+	}
+	
+	public void setTestInput(String testInput) {
+		if (this.testInput != null) {
+			throw new IllegalStateException("Only 1 test input allowed.");
+		}
+		List<T> l = new ArrayList<T>();
+		Reader r = new StringReader(testInput);
+		
+		parseDataset(r, l);
+
+		this.testInput = new Dataset<T>("SampleTest", l);
 	}
 
 	private void init() {
@@ -86,7 +100,7 @@ public abstract class AbstractProblemContainer<T extends AbstractTestCase> {
 		suiteMap.put(dataset.getName(), dataset);
 	}
 
-	public void addSolver(ProblemSolver<T> solver) {
+	public void addSolver(AbstractProblemSolver<T> solver) {
 		if (solver.getTestCaseClass().equals(testCaseClass) == false) {
 			throw new IllegalArgumentException("Solver <" + solver.getName()
 					+ "> bad test class type. Expected <" + testCaseClass
@@ -105,7 +119,7 @@ public abstract class AbstractProblemContainer<T extends AbstractTestCase> {
 
 		// Time and run.
 		//
-		ProblemSolver<T> solver = solverMap.get(solverName);
+		AbstractProblemSolver<T> solver = solverMap.get(solverName);
 		if (solver == null) {
 			throw new IllegalArgumentException("No solver named <" + solverName
 					+ ">.");
@@ -137,21 +151,45 @@ public abstract class AbstractProblemContainer<T extends AbstractTestCase> {
 
 		Log.info("Execution time: " + ((t2 - t1) * 1e-6) + " msecs");
 	}
+	
+	public String getLightCheckSolverResult(AbstractProblemSolver<T> solver) {
+		StringBuilder sb = new StringBuilder();
+		for (T test: testInput.getTestCases()) {
+			AbstractCaseResult<T> res = solver.execute(test);
+			res.appendResult(sb);
+		}
+		
+		return sb.toString();
+	}
+	
+	void lightCheckSolvers() {
+		if (testInput == null) {
+			throw new UnsupportedOperationException("No test input is configured !");
+		}
+		Log.info("Long checking solvers.");
+		
+		for (AbstractProblemSolver<T> solver : solverMap.values()) {
+			Log.info("Executing for solver: " + solver.getName()
+					+ " ...");
 
-	void checkSolvers() {
+			String res = getLightCheckSolverResult(solver);
+			
+		}
+		Log.info("Solver check OK.");
+	}
+
+	void longCheckSolvers() {
 		init();
 
-		Log.info("Checking solvers.");
+		Log.info("Long checking solvers.");
 
-		Set<ProblemSolver<T>> s = new HashSet<ProblemSolver<T>>(
-				solverMap.values());
 		for (Dataset<T> suite : suiteMap.values()) {
 			Log.info("Running suite: " + suite.getName());
 			for (T test : suite.getTestCases()) {
 				AbstractCaseResult<T> referenceRes = null;
 				Log.info("Test: " + test);
 
-				for (ProblemSolver<T> solver : s) {
+				for (AbstractProblemSolver<T> solver : solverMap.values()) {
 					Log.info("Executing for solver: " + solver.getName()
 							+ " ...");
 					AbstractCaseResult<T> res = solver.execute(test);

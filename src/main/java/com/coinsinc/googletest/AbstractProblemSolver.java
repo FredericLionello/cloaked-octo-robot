@@ -1,6 +1,6 @@
 package com.coinsinc.googletest;
 
-public abstract class AbstractProblemSolver<T extends AbstractTestCase> implements ProblemSolver<T> {
+public abstract class AbstractProblemSolver<T extends AbstractTestCase> {
 	private final String name;
 	private final Class<T> testCaseClass;
 
@@ -17,5 +17,7 @@ public abstract class AbstractProblemSolver<T extends AbstractTestCase> implemen
 	public Class<T> getTestCaseClass() {
 		return testCaseClass;
 	}
+	
+	abstract AbstractCaseResult<T> execute(T test);
 
 }

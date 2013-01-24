@@ -4,8 +4,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import com.coinsinc.googletest.AbstractProblemContainer;
+import com.coinsinc.googletest.AbstractProblemSolver;
 import com.coinsinc.googletest.AbstractTestCase;
-import com.coinsinc.googletest.ProblemSolver;
 
 public class ProblemManager {
 
@@ -30,7 +30,7 @@ public class ProblemManager {
 		containerMapByTCClass.put(container.getTestCaseClass(), container);
 	}
 
-	public <T extends AbstractTestCase> void addSolver(ProblemSolver<T> solver) {
+	public <T extends AbstractTestCase> void addSolver(AbstractProblemSolver<T> solver) {
 		AbstractProblemContainer<?> container = containerMapByTCClass.get(solver
 				.getTestCaseClass());
 		
