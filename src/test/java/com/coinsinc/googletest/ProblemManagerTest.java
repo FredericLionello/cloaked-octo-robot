@@ -1,15 +1,13 @@
 package com.coinsinc.googletest;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
 
-import java.util.logging.ConsoleHandler;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.junit.Test;
 import org.junit.Before;
-import org.junit.BeforeClass;
+import org.junit.Test;
 
 import com.coinsinc.googletest.problems.storecredit.StoreCredProblemContainer;
 import com.coinsinc.googletest.problems.storecredit.StoreCreditTestCase;
@@ -47,9 +45,20 @@ public class ProblemManagerTest {
 	}
 	
 	@Test
-	public void testCheck() {		
+	public void testBadSolverLightCheck() {		
 		String lightCheck = container.getLightCheckSolverResult(badSolver);
 		Logger.getLogger("test").warning("Light check: " + lightCheck);
+		assertEquals("Case #1: 1 2\nCase #2: 1 2\nCase #3: 1 2\n", lightCheck);
+	}
+	
+	@Test(expected=RuntimeException.class)
+	public void testRunLightChecks() {
+		container.runLightChecks();
+	}
+	
+	@Test
+	public void testBench() {
+		container.runSolverBenchmark(badSolver.getName(), "small.txt");
 	}
 	
 	
@@ -61,7 +70,7 @@ public class ProblemManagerTest {
 		}
 
 		@Override
-		AbstractCaseResult<StoreCreditTestCase> execute(StoreCreditTestCase test) {
+		public AbstractCaseResult<StoreCreditTestCase> execute(StoreCreditTestCase test) {
 			return test.makeResult(0, 1);
 		}
 		

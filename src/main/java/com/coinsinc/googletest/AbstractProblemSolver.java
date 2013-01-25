@@ -31,6 +31,6 @@ public abstract class AbstractProblemSolver<T extends AbstractTestCase> {
 		return container;
 	}
 
-	abstract AbstractCaseResult<T> execute(T test);
+	public abstract AbstractCaseResult<T> execute(T test);
 
 }

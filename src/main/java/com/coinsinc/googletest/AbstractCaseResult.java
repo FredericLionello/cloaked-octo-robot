@@ -13,7 +13,7 @@ public abstract class AbstractCaseResult<T extends AbstractTestCase> {
 	}
 
 	void output(StringBuilder sb) {
-		sb.append("Case #" + test.getId() + ": ");
+		sb.append("Case #" + (test.getId() + 1) + ": ");
 		appendResult(sb);
 		sb.append("\n");
 	}

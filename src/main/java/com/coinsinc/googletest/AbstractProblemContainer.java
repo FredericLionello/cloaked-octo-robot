@@ -1,10 +1,13 @@
 package com.coinsinc.googletest;
 
-import java.io.BufferedInputStream;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.LineNumberReader;
 import java.io.Reader;
 import java.util.ArrayList;
@@ -14,7 +17,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import javax.imageio.stream.FileImageInputStream;
+import org.springframework.core.io.Resource;
+
+//import org.springframework.core.io.Resource;
 
 public abstract class AbstractProblemContainer<T extends AbstractTestCase> {
 	private static final Logger Log = Logger.getLogger("TestContainer");
@@ -22,7 +27,7 @@ public abstract class AbstractProblemContainer<T extends AbstractTestCase> {
 	private final String shortName;
 	private boolean initDone = false;
 	private final Class<T> testCaseClass;
-	private final List<File> datasetFiles = new ArrayList<File>();
+	private final List<Resource> datasetFiles = new ArrayList<Resource>();
 	private final Map<String, Dataset<T>> suiteMap = new LinkedHashMap<String, Dataset<T>>();
 	private final Map<String, AbstractProblemSolver<T>> solverMap = new LinkedHashMap<String, AbstractProblemSolver<T>>();
 	private Dataset<T> testInput;
@@ -50,7 +55,7 @@ public abstract class AbstractProblemContainer<T extends AbstractTestCase> {
 		return solverMap.keySet();
 	}
 
-	public void setTestOutput(File testOutput) {
+	public void setTestOutput(Resource testOutput) {
 		StringBuilder sb = new StringBuilder();
 
 		try {
@@ -58,7 +63,7 @@ public abstract class AbstractProblemContainer<T extends AbstractTestCase> {
 			// this is going to work.
 			//
 			LineNumberReader lnr;
-			lnr = new LineNumberReader(new FileReader(testOutput));
+			lnr = new LineNumberReader(new InputStreamReader(testOutput.getInputStream()));
 
 			String line;
 
@@ -66,20 +71,22 @@ public abstract class AbstractProblemContainer<T extends AbstractTestCase> {
 				sb.append(line).append("\n");
 			}
 		} catch (FileNotFoundException e) {
-			throw new RuntimeException("Cannot read <" + this.testOutput + ">", e);
+			throw new RuntimeException("Cannot read <" + this.testOutput + ">",
+					e);
 		} catch (IOException e) {
-			throw new RuntimeException("Cannot read <" + this.testOutput + ">", e);
+			throw new RuntimeException("Cannot read <" + this.testOutput + ">",
+					e);
 		}
 
 		this.testOutput = sb.toString();
 	}
 
-	public void setTestInput(File testInputFile) {
+	public void setTestInput(Resource testInputResource) {
 		if (this.testInput != null) {
 			throw new IllegalStateException("Only 1 test input allowed.");
 		}
 
-		Dataset<T> test = parseDataset(testInputFile);
+		Dataset<T> test = parseDataset(testInputResource);
 
 		this.testInput = test;
 	}
@@ -89,7 +96,7 @@ public abstract class AbstractProblemContainer<T extends AbstractTestCase> {
 			return;
 		}
 
-		for (File df : datasetFiles) {
+		for (Resource df : datasetFiles) {
 			Dataset<T> dataset = parseDataset(df);
 
 			addDataset(dataset);
@@ -103,26 +110,30 @@ public abstract class AbstractProblemContainer<T extends AbstractTestCase> {
 		initDone = true;
 	}
 
-	private Dataset<T> parseDataset(File df) {
+	private Dataset<T> parseDataset(Resource df) {
 		List<T> l = new ArrayList<T>();
 		Reader r = null;
 
-		try {
-			r = new FileReader(df);
-		} catch (FileNotFoundException e) {
+		//try {
+			try {
+				r = new InputStreamReader(df.getInputStream());
+			} catch (IOException e) {
+				throw new RuntimeException("Cannot open " + df + ": " + e, e);
+			}
+		/*} catch (FileNotFoundException e) {
 			throw new RuntimeException("Cannot open " + df + ": " + e, e);
-		}
+		}*/
 
 		parseDataset(r, l);
-		Dataset<T> dataset = new Dataset<T>(df.getName(), l);
+		Dataset<T> dataset = new Dataset<T>(df.getFilename(), l);
 		return dataset;
 	}
 
-	public List<File> getDatasetFiles() {
+	public List<Resource> getDatasetFiles() {
 		return datasetFiles;
 	}
 
-	public void setDatasetFiles(List<File> datasetFiles) {
+	public void setDatasetFiles(List<Resource> datasetFiles) {
 		if (initDone == true || this.datasetFiles.isEmpty() == false) {
 			throw new IllegalStateException("Not allowed twice or after init.");
 		}
@@ -152,7 +163,7 @@ public abstract class AbstractProblemContainer<T extends AbstractTestCase> {
 		solverMap.put(solver.getName(), solver);
 	}
 
-	void runSolverBenchmark(String solverName, String suiteName) {
+	public void runSolverBenchmark(String solverName, String suiteName) {
 		init();
 
 		// Time and run.
@@ -166,7 +177,7 @@ public abstract class AbstractProblemContainer<T extends AbstractTestCase> {
 		Dataset<T> suite = suiteMap.get(suiteName);
 		if (suite == null) {
 			throw new IllegalArgumentException("No suite named <" + suiteName
-					+ ">.");
+					+ ">. Available: " + suiteMap.keySet());
 		}
 
 		Log.info("Starting benchmark, test <" + shortName + ">, solver <"
@@ -178,16 +189,26 @@ public abstract class AbstractProblemContainer<T extends AbstractTestCase> {
 		// could end up with the JVM compiling out the results.
 		// So, all solvers run without warmup. May the best win.
 		//
-
 		long t1 = System.nanoTime();
 		StringBuilder sb = new StringBuilder();
 		for (T aec : suite.getTestCases()) {
 			AbstractCaseResult<T> result = solver.execute(aec);
 			result.output(sb);
 		}
+
+		try {
+			BufferedWriter out = new BufferedWriter(new FileWriter("out.txt"));
+
+			out.write(sb.toString());
+			out.close();
+		} catch (IOException e) {
+			throw new RuntimeException("Cannot write result file out.txt", e);
+		}
+
 		long t2 = System.nanoTime();
 
-		Log.info("Execution time: " + ((t2 - t1) * 1e-6) + " msecs");
+		Log.info("Execution time <" + getShortName() + ":" + solver.getName()
+				+ ":" + suite.getName() + "> " + ((t2 - t1) * 1e-3) + " usecs");
 	}
 
 	public String getLightCheckSolverResult(AbstractProblemSolver<T> solver) {
@@ -200,7 +221,7 @@ public abstract class AbstractProblemContainer<T extends AbstractTestCase> {
 		return sb.toString();
 	}
 
-	void runLightChecks() {
+	public void runLightChecks() {
 		if (testInput == null) {
 			throw new UnsupportedOperationException(
 					"No test input is configured !");
@@ -221,7 +242,7 @@ public abstract class AbstractProblemContainer<T extends AbstractTestCase> {
 		Log.info("Light solver check OK.");
 	}
 
-	void runLongChecks() {
+	public void runLongChecks() {
 		init();
 
 		Log.info("Long checking solvers.");

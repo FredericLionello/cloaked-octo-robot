@@ -5,14 +5,14 @@
 			http://www.springframework.org/schema/beans/spring-beans.xsd">
 	
 	<bean id="StoreCredit" class="com.coinsinc.googletest.problems.storecredit.StoreCredProblemContainer">
-		<property name="testInput" value="classpath:com/coinsinc/googletest/problems/storecredit/testInput.txt"/>
+		<property name="testInput" value="classpath:problems/storecredit/testInput.txt"/>
 
-		<property name="testOutput" value="classpath:com/coinsinc/googletest/problems/storecredit/testOutput.txt"/>
+		<property name="testOutput" value="classpath:problems/storecredit/testOutput.txt"/>
 
 		<property name="datasetFiles">
 			<list>
-				<value>classpath:com/coinsinc/googletest/problems/storecredit/small.txt</value>
-				<value>classpath:com/coinsinc/googletest/problems/storecredit/big.txt</value>
+				<value>classpath:problems/storecredit/small.txt</value>
+				<value>classpath:problems/storecredit/big.txt</value>
 			</list>
 		</property>
 	</bean>

@@ -4,6 +4,9 @@ import com.coinsinc.googletest.AbstractCaseResult;
 
 public class StoreCreditCaseResult extends AbstractCaseResult<StoreCreditTestCase> {
 	
+
+
+
 	private final int firstIdx;
 	private final int secondIdx;	
 
@@ -18,7 +21,7 @@ public class StoreCreditCaseResult extends AbstractCaseResult<StoreCreditTestCas
 	
 	@Override
 	protected void appendResult(StringBuilder sb) {
-		sb.append(Integer.toString(firstIdx)).append(" ").append(Integer.toString(secondIdx));
+		sb.append(Integer.toString(firstIdx+1)).append(" ").append(Integer.toString(secondIdx+1));
 	}
 
 
@@ -26,5 +29,30 @@ public class StoreCreditCaseResult extends AbstractCaseResult<StoreCreditTestCas
 	public String toString() {
 		return "StoreCreditCaseResult [firstIdx=" + firstIdx + ", secondIdx="
 				+ secondIdx + "]";
+	}
+	
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + firstIdx;
+		result = prime * result + secondIdx;
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		StoreCreditCaseResult other = (StoreCreditCaseResult) obj;
+		if (firstIdx != other.firstIdx)
+			return false;
+		if (secondIdx != other.secondIdx)
+			return false;
+		return true;
 	}
 }

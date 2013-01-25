@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<bean id="fred_store_cred" class="com.coinsinc.googletest.users.fred.StoreCreditSolver">
+		<constructor-arg name="container" ref="StoreCredit" />
+	</bean>
+	<bean id="fred_dumb" class="com.coinsinc.googletest.users.fred.Dumb">
+		<constructor-arg name="container" ref="StoreCredit" />
+	</bean>
+</beans>
