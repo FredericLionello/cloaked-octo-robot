@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans.xsd">
+	
+	<bean id="StoreCredit" class="com.coinsinc.googletest.problems.storecredit.StoreCredProblemContainer">
+		<property name="testInput" value="classpath:com/coinsinc/googletest/problems/storecredit/testInput.txt"/>
+
+		<property name="testOutput" value="classpath:com/coinsinc/googletest/problems/storecredit/testOutput.txt"/>
+
+		<property name="datasetFiles">
+			<list>
+				<value>classpath:com/coinsinc/googletest/problems/storecredit/small.txt</value>
+				<value>classpath:com/coinsinc/googletest/problems/storecredit/big.txt</value>
+			</list>
+		</property>
+	</bean>
+</beans>
