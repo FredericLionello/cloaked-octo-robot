@@ -8,9 +8,11 @@ import com.coinsinc.googletest.FileParser;
 
 public class StoreCredProblemContainer extends
 		AbstractProblemContainer<StoreCreditTestCase> {
+	
+	public static final String Name = "StoreCredit";
 
 	public StoreCredProblemContainer() {
-		super("StoreCredit", StoreCreditTestCase.class);
+		super(Name, StoreCreditTestCase.class);
 	}
 
 	@Override
@@ -28,7 +30,5 @@ public class StoreCredProblemContainer extends
 				list.add(new StoreCreditTestCase(i, credit, items));
 			}
 		}.parse();
-
 	}
-
 }

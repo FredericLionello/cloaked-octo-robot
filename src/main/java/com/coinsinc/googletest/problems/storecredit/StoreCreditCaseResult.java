@@ -7,7 +7,7 @@ public class StoreCreditCaseResult extends AbstractCaseResult<StoreCreditTestCas
 	private final int firstIdx;
 	private final int secondIdx;	
 
-	public StoreCreditCaseResult(StoreCreditTestCase test, int firstIdx,
+	StoreCreditCaseResult(StoreCreditTestCase test, int firstIdx,
 			int secondIdx) {
 		super(test);
 		this.firstIdx = firstIdx;

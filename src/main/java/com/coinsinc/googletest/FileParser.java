@@ -29,7 +29,9 @@ public abstract class FileParser {
 			throw new IllegalStateException("Trying to read past end of file <"
 					+ reader + ">.");
 		}
-
+		
+		System.out.println("FileParser getNextLine: " + res);
+ 
 		return res;
 	}
 

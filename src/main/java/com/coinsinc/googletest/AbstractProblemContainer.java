@@ -1,19 +1,24 @@
 package com.coinsinc.googletest;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.IOException;
+import java.io.LineNumberReader;
 import java.io.Reader;
-import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
+
+import javax.imageio.stream.FileImageInputStream;
 
 public abstract class AbstractProblemContainer<T extends AbstractTestCase> {
 	private static final Logger Log = Logger.getLogger("TestContainer");
-	
+
 	private final String shortName;
 	private boolean initDone = false;
 	private final Class<T> testCaseClass;
@@ -21,7 +26,7 @@ public abstract class AbstractProblemContainer<T extends AbstractTestCase> {
 	private final Map<String, Dataset<T>> suiteMap = new LinkedHashMap<String, Dataset<T>>();
 	private final Map<String, AbstractProblemSolver<T>> solverMap = new LinkedHashMap<String, AbstractProblemSolver<T>>();
 	private Dataset<T> testInput;
-	private String testOutputString;
+	private String testOutput;
 
 	public AbstractProblemContainer(String name, Class<T> testCaseClass) {
 		super();
@@ -36,17 +41,47 @@ public abstract class AbstractProblemContainer<T extends AbstractTestCase> {
 	public Class<T> getTestCaseClass() {
 		return testCaseClass;
 	}
-	
-	public void setTestInput(String testInput) {
+
+	Set<String> getSuiteNames() {
+		return suiteMap.keySet();
+	}
+
+	Set<String> getSolverNames() {
+		return solverMap.keySet();
+	}
+
+	public void setTestOutput(File testOutput) {
+		StringBuilder sb = new StringBuilder();
+
+		try {
+			// Trying to get rid of Win/*nix line file difference. Not sure how
+			// this is going to work.
+			//
+			LineNumberReader lnr;
+			lnr = new LineNumberReader(new FileReader(testOutput));
+
+			String line;
+
+			while ((line = lnr.readLine()) != null) {
+				sb.append(line).append("\n");
+			}
+		} catch (FileNotFoundException e) {
+			throw new RuntimeException("Cannot read <" + this.testOutput + ">", e);
+		} catch (IOException e) {
+			throw new RuntimeException("Cannot read <" + this.testOutput + ">", e);
+		}
+
+		this.testOutput = sb.toString();
+	}
+
+	public void setTestInput(File testInputFile) {
 		if (this.testInput != null) {
 			throw new IllegalStateException("Only 1 test input allowed.");
 		}
-		List<T> l = new ArrayList<T>();
-		Reader r = new StringReader(testInput);
-		
-		parseDataset(r, l);
 
-		this.testInput = new Dataset<T>("SampleTest", l);
+		Dataset<T> test = parseDataset(testInputFile);
+
+		this.testInput = test;
 	}
 
 	private void init() {
@@ -55,18 +90,9 @@ public abstract class AbstractProblemContainer<T extends AbstractTestCase> {
 		}
 
 		for (File df : datasetFiles) {
-			List<T> l = new ArrayList<T>();
-			Reader r = null;
+			Dataset<T> dataset = parseDataset(df);
 
-			try {
-				r = new FileReader(df);
-			} catch (FileNotFoundException e) {
-				throw new RuntimeException("Cannot open " + df + ": " + e, e);
-			}
-
-			parseDataset(r, l);
-
-			addDataset(new Dataset<T>(df.getName(), l));
+			addDataset(dataset);
 		}
 
 		if (suiteMap.isEmpty()) {
@@ -75,6 +101,21 @@ public abstract class AbstractProblemContainer<T extends AbstractTestCase> {
 		}
 
 		initDone = true;
+	}
+
+	private Dataset<T> parseDataset(File df) {
+		List<T> l = new ArrayList<T>();
+		Reader r = null;
+
+		try {
+			r = new FileReader(df);
+		} catch (FileNotFoundException e) {
+			throw new RuntimeException("Cannot open " + df + ": " + e, e);
+		}
+
+		parseDataset(r, l);
+		Dataset<T> dataset = new Dataset<T>(df.getName(), l);
+		return dataset;
 	}
 
 	public List<File> getDatasetFiles() {
@@ -101,11 +142,8 @@ public abstract class AbstractProblemContainer<T extends AbstractTestCase> {
 	}
 
 	public void addSolver(AbstractProblemSolver<T> solver) {
-		if (solver.getTestCaseClass().equals(testCaseClass) == false) {
-			throw new IllegalArgumentException("Solver <" + solver.getName()
-					+ "> bad test class type. Expected <" + testCaseClass
-					+ "> and solver has <" + solver.getTestCaseClass() + ">.");
-		}
+		assert solver.getContainer().equals(this);
+
 		if (solverMap.containsKey(solver.getName())) {
 			throw new RuntimeException("Already a solver named: "
 					+ solver.getName());
@@ -151,34 +189,39 @@ public abstract class AbstractProblemContainer<T extends AbstractTestCase> {
 
 		Log.info("Execution time: " + ((t2 - t1) * 1e-6) + " msecs");
 	}
-	
+
 	public String getLightCheckSolverResult(AbstractProblemSolver<T> solver) {
 		StringBuilder sb = new StringBuilder();
-		for (T test: testInput.getTestCases()) {
+		for (T test : testInput.getTestCases()) {
 			AbstractCaseResult<T> res = solver.execute(test);
 			res.appendResult(sb);
 		}
-		
+
 		return sb.toString();
 	}
-	
-	void lightCheckSolvers() {
+
+	void runLightChecks() {
 		if (testInput == null) {
-			throw new UnsupportedOperationException("No test input is configured !");
+			throw new UnsupportedOperationException(
+					"No test input is configured !");
 		}
 		Log.info("Long checking solvers.");
-		
+
 		for (AbstractProblemSolver<T> solver : solverMap.values()) {
-			Log.info("Executing for solver: " + solver.getName()
-					+ " ...");
+			Log.info("Executing for solver: " + solver.getName() + " ...");
 
 			String res = getLightCheckSolverResult(solver);
-			
+			if (res.equals(testOutput) == false) {
+				Log.severe("Light check failure.");
+				Log.severe("Expecting: \n" + testOutput);
+				Log.severe("Got: \n" + res);
+				throw new RuntimeException("Light check failure");
+			}
 		}
-		Log.info("Solver check OK.");
+		Log.info("Light solver check OK.");
 	}
 
-	void longCheckSolvers() {
+	void runLongChecks() {
 		init();
 
 		Log.info("Long checking solvers.");
@@ -210,5 +253,4 @@ public abstract class AbstractProblemContainer<T extends AbstractTestCase> {
 
 		Log.info("Solver check OK.");
 	}
-
 }
