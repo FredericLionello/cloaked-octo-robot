@@ -84,7 +84,7 @@ public abstract class AbstractProblemContainer<T extends AbstractTestCase> {
 		this.testInput = test;
 	}
 
-	private void init() {
+	public void init() {
 		if (initDone == true) {
 			return;
 		}
@@ -194,7 +194,7 @@ public abstract class AbstractProblemContainer<T extends AbstractTestCase> {
 		StringBuilder sb = new StringBuilder();
 		for (T test : testInput.getTestCases()) {
 			AbstractCaseResult<T> res = solver.execute(test);
-			res.appendResult(sb);
+			res.output(sb);
 		}
 
 		return sb.toString();

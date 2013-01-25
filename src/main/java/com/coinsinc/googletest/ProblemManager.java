@@ -1,8 +1,16 @@
 package com.coinsinc.googletest;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Formatter;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -11,6 +19,33 @@ public class ProblemManager {
 
 	private final Map<String, AbstractProblemContainer<?>> containerMapByShortName = new LinkedHashMap<String, AbstractProblemContainer<?>>();
 	private final Map<Class<?>, AbstractProblemContainer<?>> containerMapByTCClass = new LinkedHashMap<Class<?>, AbstractProblemContainer<?>>();
+	
+	static {
+		//Logger.getLogger("").addHandler(new ConsoleHandler());
+		for (Handler handler: Logger.getLogger("").getHandlers()) {
+			Logger.getLogger("").removeHandler(handler);
+		}
+		ConsoleHandler h = new ConsoleHandler();
+		h.setFormatter(new Formatter() {
+			
+			@Override
+			public String format(LogRecord record) {
+				SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss,SSS");
+				Date resultdate = new Date(record.getMillis());
+				StringBuilder sb = new StringBuilder();
+				String[] split = record.getSourceClassName().split("\\.");
+				String cls = split[split.length -1];
+				sb.append(sdf.format(resultdate)).append(" ")
+					.append(cls)
+					.append(" ").append(record.getSourceMethodName())
+					.append(" ").append(record.getMessage()).append("\n");
+				
+				return sb.toString(); 
+			}
+		});
+		Logger.getLogger("").addHandler(h);
+		Logger.getLogger("").setLevel(Level.FINEST);
+	}
 
 	public ProblemManager() {
 		// Perform init.
@@ -69,7 +104,7 @@ public class ProblemManager {
 	Set<String> getSuiteNames(String pbName) {
 		AbstractProblemContainer<?> pb = getContainer(pbName);
 
-		return pb.getSolverNames();
+		return pb.getSuiteNames();
 	}
 
 	private void addContainer(AbstractProblemContainer<?> container) {

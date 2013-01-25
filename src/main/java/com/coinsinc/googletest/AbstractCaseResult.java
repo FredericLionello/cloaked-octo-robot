@@ -15,6 +15,7 @@ public abstract class AbstractCaseResult<T extends AbstractTestCase> {
 	void output(StringBuilder sb) {
 		sb.append("Case #" + test.getId() + ": ");
 		appendResult(sb);
+		sb.append("\n");
 	}
 	
 	protected abstract void appendResult(StringBuilder sb);

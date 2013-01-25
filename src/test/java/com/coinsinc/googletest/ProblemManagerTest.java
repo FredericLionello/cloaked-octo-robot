@@ -23,9 +23,7 @@ public class ProblemManagerTest {
 	
 	@Before
 	public void setup() {
-		Logger.getLogger("").addHandler(new ConsoleHandler());
-		Logger.getLogger("").setLevel(Level.FINEST);
-		Logger.getLogger("").info("here");
+
 		
 		mgr = new ProblemManager();
 		container = mgr.getContainer(StoreCredProblemContainer.Name, StoreCredProblemContainer.class);
@@ -40,6 +38,9 @@ public class ProblemManagerTest {
 	public void testLists() {		
 		assertTrue(mgr.getProblemNames().contains(container.getShortName()));
 		assertTrue(mgr.getSolverNames(StoreCredProblemContainer.Name).contains(badSolver.getName()));
+		
+		//	Forcing init to parse data sets.
+		container.init();
 		assertEquals(2, mgr.getSuiteNames(StoreCredProblemContainer.Name).size());
 		assertTrue(mgr.getSuiteNames(StoreCredProblemContainer.Name).contains("small.txt"));
 		assertTrue(mgr.getSuiteNames(StoreCredProblemContainer.Name).contains("big.txt"));
