@@ -23,6 +23,7 @@ public class App {
 	}
 
 	private static final String OpHelp = "help";
+    private static final String OpMessage= "message";
 	private static final String OpAppconfig = "appconfig";
 	private static final String OpCommand = "command";
 	private static final String OpName = "name";
@@ -34,7 +35,9 @@ public class App {
 	private App(String[] args) {
 		options.addOption("h", OpHelp, false,
 				"Get some help on command line options.");
-		options.addOption("v", OpVerbose, false, "Set verbose logging.");
+        options.addOption("m", OpMessage, false,
+                "Get some informative message.");
+        options.addOption("v", OpVerbose, false, "Set verbose logging.");
 
 		options.addOption(OptionBuilder.hasArgs().withArgName(OpAppconfig)
 				.withValueSeparator(',').create('a'));
@@ -59,7 +62,12 @@ public class App {
 			System.exit(0);
 		}
 
-		// First we load up the default appconfig containing init data for all
+        if (line.hasOption(OpMessage)) {
+            printMessage();
+            System.exit(0);
+        }
+
+        // First we load up the default appconfig containing init data for all
 		// Pb containers and the appconfigs given in parameter (containing user
 		// solver init).
 		//
@@ -78,5 +86,10 @@ public class App {
 	private void printHelp() {
 		assert false;
 	}
+
+    private void printMessage() {
+        System.out.println("Hello there!");
+        assert false;
+    }
 
 }
