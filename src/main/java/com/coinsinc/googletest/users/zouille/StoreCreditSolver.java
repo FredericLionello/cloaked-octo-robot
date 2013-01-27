@@ -6,8 +6,9 @@ import com.coinsinc.googletest.AbstractProblemSolver;
 import com.coinsinc.googletest.problems.storecredit.StoreCreditTestCase;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
+import java.util.List;
 
 public class StoreCreditSolver extends AbstractProblemSolver<StoreCreditTestCase>{
 
@@ -29,33 +30,30 @@ public class StoreCreditSolver extends AbstractProblemSolver<StoreCreditTestCase
 	private void prepareData(StoreCreditTestCase testCase) {
 		items = testCase.getItems();
 		indicesArray = createIndicesArray(items.length);
-		sortIndicesAccordingToItems();
 	}
 
 	private int[] items;
-	private ArrayList<Integer> indicesArray;
+	private Integer[] indicesArray;
 
-	private ArrayList<Integer> createIndicesArray(int numberOfItems) {
-		ArrayList<Integer> indicesArray = new ArrayList<Integer>(numberOfItems);
-
+	private Integer[] createIndicesArray(int numberOfItems) {
+		Integer[] indicesArray = new Integer[numberOfItems];
 		for (int index = 0 ; index < numberOfItems ; index++) {
-			indicesArray.add(index);
+			indicesArray[index] = new Integer(index);
 		}
+
+		Arrays.sort(indicesArray, 0, indicesArray.length, comparatorAccordingToItems);
 		return indicesArray;
-
 	}
 
 
-	private void sortIndicesAccordingToItems() {
-		class ComparatorAccordingToItems implements Comparator<Integer> {
-			@Override
-			public int compare(Integer i1, Integer i2) {
-				return items[i1] > items[i2] ? +1 : items[i1] < items[i2] ? -1 : 0;
-			}
+	private class ComparatorAccordingToItems implements java.util.Comparator<Object> {
+		@Override
+		public int compare(Object i1, Object i2) {
+			return items[(Integer)i1] > items[(Integer)i2] ? +1 : items[(Integer)i1] < items[(Integer)i2] ? -1 : 0;
 		}
+	};
 
-		Collections.sort(indicesArray, new ComparatorAccordingToItems());
-	}
+	private final ComparatorAccordingToItems comparatorAccordingToItems = new ComparatorAccordingToItems();
 
 	private int[] getIndicesWhoseSumIsCredit(int credit) {
 		int minIndex = 0;
@@ -77,8 +75,8 @@ public class StoreCreditSolver extends AbstractProblemSolver<StoreCreditTestCase
 	}
 
 	private int priceSumFromIndices(int index1, int index2) {
-		int price1 = items[indicesArray.get(index1)];
-		int price2 = items[indicesArray.get(index2)];
+		int price1 = items[indicesArray[index1]];
+		int price2 = items[indicesArray[index2]];
 
 		return price1 + price2;
 	}
