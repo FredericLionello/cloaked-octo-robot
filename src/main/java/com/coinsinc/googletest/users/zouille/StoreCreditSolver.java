@@ -47,7 +47,6 @@ public class StoreCreditSolver extends AbstractProblemSolver<StoreCreditTestCase
 
 
 	private class ComparatorAccordingToItems implements java.util.Comparator<Object> {
-		@Override
 		public int compare(Object i1, Object i2) {
 			return items[(Integer)i1] > items[(Integer)i2] ? +1 : items[(Integer)i1] < items[(Integer)i2] ? -1 : 0;
 		}

@@ -57,8 +57,6 @@ public class App {
 			error(ex.getMessage());
 		}
 
-		System.out.println(Arrays.toString(line.getOptions()));
-
 		if (line.hasOption(OpHelp) || line.hasOption('c') == false) {
 			printHelp();
 			System.exit(0);
@@ -77,12 +75,8 @@ public class App {
 					+ cmds.keySet());
 		}
 
-		ProblemManager mgr = new ProblemManager();
+		ProblemManager mgr = new ProblemManager(line.hasOption(OpVerbose));
 		cmds.get(command).execute(mgr);
-	}
-
-	private void print(Object ob) {
-		System.out.println(ob.toString());
 	}
 
 	private void error(String msg) {
@@ -100,23 +94,10 @@ public class App {
 	private Map<String, Cmd> fillCmdMap(final CommandLine line) {
 		Map<String, Cmd> cmds = new HashMap<String, Cmd>();
 
-		cmds.put("lspb", new Cmd() {
+		cmds.put("ls", new Cmd() {
 
 			public void execute(ProblemManager mgr) {
-				print(mgr.getProblemNames());
-			}
-		});
-		cmds.put("lssolver", new Cmd() {
-
-			public void execute(ProblemManager mgr) {
-
-				print(mgr.getSolverNames(getOption(line, OpProblem)));
-			}
-		});
-		cmds.put("lssuite", new Cmd() {
-
-			public void execute(ProblemManager mgr) {
-				print(mgr.getSuiteNames(getOption(line, OpProblem)));
+				Log.info(mgr.list());
 			}
 		});
 		cmds.put("lightcheck", new Cmd() {

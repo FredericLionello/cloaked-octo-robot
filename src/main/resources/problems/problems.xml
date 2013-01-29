@@ -11,6 +11,9 @@
 
 		<property name="datasetFiles">
 			<list>
+				<value>classpath:problems/storecredit/10000.txt</value>
+				<value>classpath:problems/storecredit/100000.txt</value>
+				<value>classpath:problems/storecredit/1000000.txt</value>
 				<value>classpath:problems/storecredit/small.txt</value>
 				<value>classpath:problems/storecredit/big.txt</value>
 			</list>

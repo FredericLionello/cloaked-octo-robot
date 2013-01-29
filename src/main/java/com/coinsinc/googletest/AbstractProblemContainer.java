@@ -22,7 +22,6 @@ import org.springframework.core.io.Resource;
 //import org.springframework.core.io.Resource;
 
 public abstract class AbstractProblemContainer<T extends AbstractTestCase> {
-	private static final Logger Log = Logger.getLogger("TestContainer");
 
 	private final String shortName;
 	private boolean initDone = false;
@@ -32,11 +31,13 @@ public abstract class AbstractProblemContainer<T extends AbstractTestCase> {
 	private final Map<String, AbstractProblemSolver<T>> solverMap = new LinkedHashMap<String, AbstractProblemSolver<T>>();
 	private Dataset<T> testInput;
 	private String testOutput;
+	private final Logger logger;
 
 	public AbstractProblemContainer(String name, Class<T> testCaseClass) {
 		super();
 		this.shortName = name;
 		this.testCaseClass = testCaseClass;
+		logger = Logger.getLogger("Container<" + name + ">");
 	}
 
 	public String getShortName() {
@@ -180,7 +181,7 @@ public abstract class AbstractProblemContainer<T extends AbstractTestCase> {
 					+ ">. Available: " + suiteMap.keySet());
 		}
 
-		Log.info("Starting benchmark, test <" + shortName + ">, solver <"
+		logger.info("Starting benchmark, solver <"
 				+ solverName + ">, suite <" + suiteName + ">.");
 
 		// This is micro benchmarking with the associated errors. We should
@@ -207,7 +208,7 @@ public abstract class AbstractProblemContainer<T extends AbstractTestCase> {
 
 		long t2 = System.nanoTime();
 
-		Log.info("Execution time <" + getShortName() + ":" + solver.getName()
+		logger.info("Execution time for <" + solver.getName()
 				+ ":" + suite.getName() + "> " + ((t2 - t1) * 1e-3) + " usecs");
 	}
 
@@ -226,43 +227,43 @@ public abstract class AbstractProblemContainer<T extends AbstractTestCase> {
 			throw new UnsupportedOperationException(
 					"No test input is configured !");
 		}
-		Log.info("Long checking solvers.");
+		logger.info("Long checking solvers.");
 
 		for (AbstractProblemSolver<T> solver : solverMap.values()) {
-			Log.info("Executing for solver: " + solver.getName() + " ...");
+			logger.info("Executing for solver: " + solver.getName() + " ...");
 
 			String res = getLightCheckSolverResult(solver);
 			if (res.equals(testOutput) == false) {
-				Log.severe("Light check failure.");
-				Log.severe("Expecting: \n" + testOutput);
-				Log.severe("Got: \n" + res);
+				logger.severe("Light check failure.");
+				logger.severe("Expecting: \n" + testOutput);
+				logger.severe("Got: \n" + res);
 				throw new RuntimeException("Light check failure");
 			}
 		}
-		Log.info("Light solver check OK.");
+		logger.info("Light solver check OK.");
 	}
 
 	public void runLongChecks() {
 		init();
 
-		Log.info("Long checking solvers.");
+		logger.info("Long checking solvers.");
 
 		for (Dataset<T> suite : suiteMap.values()) {
-			Log.info("Running suite: " + suite.getName());
+			logger.info("Running suite: " + suite.getName());
 			for (T test : suite.getTestCases()) {
 				AbstractCaseResult<T> referenceRes = null;
-				Log.info("Test: " + test);
+				logger.info("Test: " + test);
 
 				for (AbstractProblemSolver<T> solver : solverMap.values()) {
-					Log.info("Executing for solver: " + solver.getName()
+					logger.info("Executing for solver: " + solver.getName()
 							+ " ...");
 					AbstractCaseResult<T> res = solver.execute(test);
-					Log.info("Result for solver: " + solver.getName() + ": "
+					logger.info("Result for solver: " + solver.getName() + ": "
 							+ res);
 
 					if (referenceRes != null) {
 						if (res.equals(referenceRes) == false) {
-							Log.severe("Different results !");
+							logger.severe("Different results !");
 							throw new RuntimeException("Different results !");
 						}
 					} else {
@@ -272,6 +273,6 @@ public abstract class AbstractProblemContainer<T extends AbstractTestCase> {
 			}
 		}
 
-		Log.info("Solver check OK.");
+		logger.info("Solver check OK.");
 	}
 }

@@ -39,7 +39,7 @@ public class ProblemManagerTest {
 		
 		//	Forcing init to parse data sets.
 		container.init();
-		assertEquals(2, mgr.getSuiteNames(StoreCredProblemContainer.Name).size());
+		assertTrue(mgr.getSuiteNames(StoreCredProblemContainer.Name).size() > 2);
 		assertTrue(mgr.getSuiteNames(StoreCredProblemContainer.Name).contains("small.txt"));
 		assertTrue(mgr.getSuiteNames(StoreCredProblemContainer.Name).contains("big.txt"));
 	}

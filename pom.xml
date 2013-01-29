@@ -16,6 +16,22 @@
 
 	<build>
 		<plugins>
+      <plugin>
+         <groupId>org.codehaus.mojo</groupId>
+         <artifactId>exec-maven-plugin</artifactId>
+         <executions>
+             <execution>
+                 <id>exec-one</id>
+                 <phase>compile</phase>
+                 <configuration>
+                     <executable>src/main/resources/problems/generateWrap.sh</executable>
+                 </configuration>
+                 <goals>
+                     <goal>exec</goal>
+                 </goals>
+             </execution>
+        </executions>
+      </plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-shade-plugin</artifactId>
